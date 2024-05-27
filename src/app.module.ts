@@ -40,12 +40,14 @@ import { Report } from "./reports/report.entity";
   ],
 })
 export class AppModule {
+  constructor(private configService: ConfigService) {}
+
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(
         cookieSession({
           name: "test-session",
-          keys: ["cookie"],
+          keys: [this.configService.get("COOKIE_KEY")],
           maxAge: 24 * 60 * 60 * 1000, // 24 hours
         }),
       )
