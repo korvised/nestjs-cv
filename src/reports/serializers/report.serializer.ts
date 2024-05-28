@@ -1,6 +1,6 @@
 import { Expose, Transform } from "class-transformer";
 
-export class ReportDto {
+export class ReportSerializer {
   @Expose()
   id: number;
 
