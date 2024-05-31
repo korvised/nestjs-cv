@@ -1,9 +1,6 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { randomBytes, scrypt as _scrypt } from "crypto";
-import { promisify } from "util";
 import { UsersService } from "./users.service";
-
-const scrypt = promisify(_scrypt);
+import { comparePasswords } from "../common/services/auth.service";
 
 @Injectable()
 export class AuthService {
@@ -16,18 +13,8 @@ export class AuthService {
       throw new BadRequestException("Email in use");
     }
 
-    // Hash the password
-    // Generate a salt
-    const salt = randomBytes(8).toString("hex");
-
-    // Hash the password with the salt
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-
-    // Join the salt and the hashed password
-    const result = salt + "." + hash.toString("hex");
-
     // Create a new user and save it to the database
-    return await this.usersService.create(email, result);
+    return await this.usersService.create(email, password);
   }
 
   async signin(email: string, password: string) {
@@ -36,10 +23,9 @@ export class AuthService {
       throw new BadRequestException("Invalid credentials");
     }
 
-    const [salt, storedHash] = user.password.split(".");
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-
-    if (storedHash !== hash.toString("hex")) {
+    // Compare passwords
+    const isMatched = await comparePasswords(user.password, password);
+    if (!isMatched) {
       throw new BadRequestException("Invalid credentials");
     }
 

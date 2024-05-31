@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Report } from "../../reports/entities/report.entity";
+import { hashPassword } from "../../common/services/auth.service";
 
 @Entity()
 export class User {
@@ -26,8 +27,8 @@ export class User {
   reports: Report[];
 
   @BeforeInsert()
-  hashPassword() {
-    console.log("Hashing password ", this.password);
+  async beforeInsert() {
+    this.password = await hashPassword(this.password);
   }
 
   @BeforeUpdate()
